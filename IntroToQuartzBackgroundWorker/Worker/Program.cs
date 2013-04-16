@@ -50,6 +50,11 @@ namespace Worker {
 
             // And finally, schedule the job
             ScheduleJob();
+
+            // Run immediately?
+            if (_options.RunImmediately) {
+                Scheduler.TriggerJob(new JobKey("SendToMyself"));
+            }
         }
 
         private static void CreateJob() {
@@ -61,11 +66,14 @@ namespace Worker {
                 .WithIdentity("SendToMyself")   // Here we can assign a friendly name to our job        
                 .Build();                       // And now we build the job detail
 
+            // Put options into data map
+            _emailJobDetail.JobDataMap.Put("Email", _options.Email);
+
         }
 
         private static void ScheduleJob() {
 
-            // Let's create a trigger that fires immediately
+            // Let's create a trigger
             ITrigger trigger = TriggerBuilder.Create()
 
                 // A description helps other people understand what you want
@@ -95,7 +103,7 @@ namespace Worker {
 
                 // Finally, we take the schedule and build a trigger
                 .Build();
-
+            
             // Ask the scheduler to schedule our EmailJob
             Scheduler.ScheduleJob(_emailJobDetail, trigger);
         }
@@ -129,9 +137,11 @@ namespace Worker {
     public class EmailJob : IJob {
         public void Execute(IJobExecutionContext context) {
 
-            // Let's start simple, write to the console
-            Console.WriteLine("Hello World! " + DateTime.Now.ToString("h:mm:ss tt"));
+            // Read the value of email from our merged (final) data map
+            var email = context.MergedJobDataMap["Email"] as string;
 
+            // TODO: Implement
+         
         }
     }
 }
