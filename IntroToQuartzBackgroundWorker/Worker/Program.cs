@@ -48,19 +48,29 @@ namespace Worker {
             ITrigger trigger = TriggerBuilder.Create()
 
                 // A description helps other people understand what you want
-                .WithDescription("Every 10 seconds")
+                .WithDescription("Every day at 3AM CST")
 
-                // A simple schedule is the easiest to build
-                // It takes an Action<SimpleScheduleBuilder>
-                // that creates a schedule according to your
-                // specifications
-                .WithSimpleSchedule(x => x
+                // A daily time schedule gives you a
+                // DailyTimeIntervalScheduleBuilder which provides
+                // a fluent interface to build a schedule
+                .WithDailyTimeIntervalSchedule(x => x
 
                     // Here we specify the interval
-                    .WithIntervalInSeconds(10)
+                    .WithIntervalInHours(24)
 
                     // And how often to repeat it
-                    .RepeatForever())
+                    .OnEveryDay()
+
+                    // Specify the time of day the trigger fires, in UTC (9am),
+                    // since CST is UTC-0600
+                    .StartingDailyAt(TimeOfDay.HourAndMinuteOfDay(9, 0))
+
+                    // Specify the timezone
+                    //
+                    // I like to use UTC dates in my applications to make sure
+                    // I stay consistent, especially when you never know what
+                    // server you're on!
+                    .InTimeZone(TimeZoneInfo.Utc))
 
                 // Finally, we take the schedule and build a trigger
                 .Build();
