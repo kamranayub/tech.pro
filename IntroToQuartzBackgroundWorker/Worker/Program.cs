@@ -1,12 +1,29 @@
 ﻿using System;
+using System.Configuration;
 using Quartz;
 using Quartz.Impl;
 
 namespace Worker {
+
+    class WorkerOptions {
+
+        /// <summary>
+        /// Whether or not to run the job immediately at runtime
+        /// </summary>
+        public bool RunImmediately { get; set; }
+
+        /// <summary>
+        /// The email address to send a notification to
+        /// </summary>
+        public string Email { get; set; }
+
+    }
+
     class Program {
         private static readonly ISchedulerFactory SchedulerFactory;
         private static readonly IScheduler Scheduler;
         private static IJobDetail _emailJobDetail;
+        private static WorkerOptions _options;
 
         static Program() {
 
@@ -17,6 +34,10 @@ namespace Worker {
         }
 
         static void Main(string[] args) {
+
+            // Read our options from config (provided locally 
+            // or via cloud host)
+            ReadOptionsFromConfig();      
             
             // Now let's start our scheduler; you could perform
             // any processing or bootstrapping code here before
@@ -77,6 +98,28 @@ namespace Worker {
 
             // Ask the scheduler to schedule our EmailJob
             Scheduler.ScheduleJob(_emailJobDetail, trigger);
+        }
+
+        private static void ReadOptionsFromConfig() {
+
+            // Make sure we have options to change
+            if (_options == null)
+                _options = new WorkerOptions();
+
+            // Try to read the RunImmediately value from app.config
+            string configRunImmediately = ConfigurationManager.AppSettings["RunImmediately"];
+            bool runImmediately;
+
+            if (Boolean.TryParse(configRunImmediately, out runImmediately)) {
+                _options.RunImmediately = runImmediately;
+            }
+
+            // Try to read the Email value from app.config
+            string configEmail = ConfigurationManager.AppSettings["Email"];
+
+            if (!String.IsNullOrEmpty(configEmail)) {
+                _options.Email = configEmail;
+            }
         }
     }
 
