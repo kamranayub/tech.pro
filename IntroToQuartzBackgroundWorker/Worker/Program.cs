@@ -46,8 +46,24 @@ namespace Worker {
 
             // Let's create a trigger that fires immediately
             ITrigger trigger = TriggerBuilder.Create()
-                .StartNow()     // Starts the trigger immediately when scheduled
-                .Build();       // Builds a trigger to assign to a job
+
+                // A description helps other people understand what you want
+                .WithDescription("Every 10 seconds")
+
+                // A simple schedule is the easiest to build
+                // It takes an Action<SimpleScheduleBuilder>
+                // that creates a schedule according to your
+                // specifications
+                .WithSimpleSchedule(x => x
+
+                    // Here we specify the interval
+                    .WithIntervalInSeconds(10)
+
+                    // And how often to repeat it
+                    .RepeatForever())
+
+                // Finally, we take the schedule and build a trigger
+                .Build();
 
             // Ask the scheduler to schedule our EmailJob
             Scheduler.ScheduleJob(_emailJobDetail, trigger);
@@ -61,7 +77,7 @@ namespace Worker {
         public void Execute(IJobExecutionContext context) {
 
             // Let's start simple, write to the console
-            Console.WriteLine("Hello World!");
+            Console.WriteLine("Hello World! " + DateTime.Now.ToString("h:mm:ss tt"));
 
         }
     }
